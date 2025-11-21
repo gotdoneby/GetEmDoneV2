@@ -314,7 +314,7 @@ Players.PlayerAdded:Connect(function(p)
 end)
 
 -- ==========================
--- Aimbot
+-- Red Dot Aimbot Toggle
 -- ==========================
 
 local Players = game:GetService("Players")
@@ -362,7 +362,7 @@ end
 
 -- Toggle in your GUI
 AimbotTab:CreateToggle({
-    Name = "Aimbot",
+    Name = "Red Dot Aim Assist",
     CurrentValue = false,
     Callback = function(Value)
         aimAssistEnabled = Value
@@ -406,4 +406,5 @@ RunService.RenderStepped:Connect(function()
         end
     end
 end)
+
 
