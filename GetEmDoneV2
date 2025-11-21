@@ -313,76 +313,70 @@ Players.PlayerAdded:Connect(function(p)
     end)
 end)
 
--- ===========================
--- Aimbot Tab (First + Third Person)
--- ===========================
+-- ==========================
+-- Aimbot
+-- ==========================
 
-local aimbotEnabled = false
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+
+local aimAssistEnabled = false
 local holdingX = false
-local followConnection = nil
 
+-- Create red dot
+local dot = Instance.new("Frame")
+dot.Size = UDim2.new(0, 8, 0, 8)
+dot.AnchorPoint = Vector2.new(0.5, 0.5)
+dot.Position = UDim2.new(0.5, 0, 0.5, 0)
+dot.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+dot.BorderSizePixel = 0
+dot.Visible = false
+dot.Parent = LocalPlayer:WaitForChild("PlayerGui"):WaitForChild("ScreenGui") or Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
+
+-- Function to get nearest visible player
 local function GetNearestPlayer()
     local nearest = nil
-    local shortest = math.huge
-    for _, p in pairs(Players:GetPlayers()) do
-        if p ~= player and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-            if character and character:FindFirstChild("HumanoidRootPart") then
-                local dist = (p.Character.HumanoidRootPart.Position - character.HumanoidRootPart.Position).Magnitude
-                if dist < shortest then
-                    shortest = dist
-                    nearest = p
+    local shortestDist = math.huge
+    local cam = Camera
+    local center = Vector2.new(cam.ViewportSize.X/2, cam.ViewportSize.Y/2)
+
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
+            local headPos, onScreen = cam:WorldToViewportPoint(player.Character.Head.Position)
+            if onScreen then
+                local screenPos = Vector2.new(headPos.X, headPos.Y)
+                local dist = (screenPos - center).Magnitude
+                if dist < shortestDist then
+                    shortestDist = dist
+                    nearest = player.Character.Head
                 end
             end
         end
     end
+
     return nearest
 end
 
+-- Toggle in your GUI
 AimbotTab:CreateToggle({
-    Name = "Aimbot (Hold X)",
+    Name = "Aimbot",
     CurrentValue = false,
-    Flag = "AimbotToggle",
     Callback = function(Value)
-        aimbotEnabled = Value
-
-        -- Turned off → disconnect camera loop
-        if not aimbotEnabled then
-            holdingX = false
-            if followConnection then
-                followConnection:Disconnect()
-                followConnection = nil
-            end
-            return
+        aimAssistEnabled = Value
+        dot.Visible = Value
+        if not Value then
+            dot.Position = UDim2.new(0.5, 0, 0.5, 0) -- reset to center
         end
-
-        -- Turned on → connect camera loop
-        followConnection = RunService.RenderStepped:Connect(function()
-            if aimbotEnabled and holdingX then
-                local target = GetNearestPlayer()
-                if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
-                    local targetPos = target.Character.HumanoidRootPart.Position
-                    local rootPart = character:FindFirstChild("HumanoidRootPart")
-                    if rootPart then
-                        local lookVector = (targetPos - rootPart.Position).Unit
-
-                        -- First-person: rotate player
-                        if Camera.CameraSubject == humanoid then
-                            rootPart.CFrame = CFrame.new(rootPart.Position, rootPart.Position + lookVector)
-                        else
-                            -- Third-person: smooth camera Lerp
-                            Camera.CFrame = Camera.CFrame:Lerp(CFrame.new(Camera.CFrame.Position, targetPos), 0.25)
-                        end
-                    end
-                end
-            end
-        end)
     end
 })
 
--- Hold X to enable aimbot
+-- Detect hold X
 UserInputService.InputBegan:Connect(function(input, gpe)
     if gpe then return end
-    if input.KeyCode == Enum.KeyCode.X and aimbotEnabled then
+    if input.KeyCode == Enum.KeyCode.X and aimAssistEnabled then
         holdingX = true
     end
 end)
@@ -390,5 +384,26 @@ end)
 UserInputService.InputEnded:Connect(function(input)
     if input.KeyCode == Enum.KeyCode.X then
         holdingX = false
+        if aimAssistEnabled then
+            dot.Position = UDim2.new(0.5, 0, 0.5, 0) -- back to center
+        end
     end
 end)
+
+-- Update dot every frame
+RunService.RenderStepped:Connect(function()
+    if aimAssistEnabled then
+        if holdingX then
+            local target = GetNearestPlayer()
+            if target then
+                local screenPos = Camera:WorldToViewportPoint(target.Position)
+                dot.Position = UDim2.new(0, screenPos.X, 0, screenPos.Y)
+            else
+                dot.Position = UDim2.new(0.5, 0, 0.5, 0)
+            end
+        else
+            dot.Position = UDim2.new(0.5, 0, 0.5, 0)
+        end
+    end
+end)
+
