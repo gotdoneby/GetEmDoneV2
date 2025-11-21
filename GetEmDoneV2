@@ -1,410 +1,192 @@
--- Services
+--========================================================--
+--                  GETEMDONE V2 - CLEAN GUI              --
+--========================================================--
+
 local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
-local player = Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local humanoid = character:WaitForChild("Humanoid")
-local Camera = workspace.CurrentCamera
 
--- Load Rayfield
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+--========================================================--
+--                  LOAD RAYFIELD UI                      --
+--========================================================--
+
+local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+
 local Window = Rayfield:CreateWindow({
     Name = "GetEmDone V2",
-    Icon = 0,
-    LoadingTitle = "GetEmDone V2",
-    LoadingSubtitle = "by GotDoneBy",
-    ShowText = "GetEmDone V2",
-    Theme = "Default",
-    ToggleUIKeybind = "K",
-    DisableRayfieldPrompts = false,
-    DisableBuildWarnings = false,
-    ConfigurationSaving = {Enabled = false, FolderName = nil, FileName = "Big Hub"},
-    Discord = {Enabled = false, Invite = "noinvitelink", RememberJoins = true},
-    KeySystem = true,
-    KeySettings = {
-        Title = "GetEmDone V2",
-        Subtitle = "GotDoneBy",
-        Note = "Get a key from GotDoneBy",
-        FileName = "Key",
-        SaveKey = true,
-        GrabKeyFromSite = false,
-        Key = {"viktorwala"}
-    }
+    LoadingTitle = "GetEmDone",
+    LoadingSubtitle = "Loaded Successfully",
+    ConfigurationSaving = { Enabled = false }
 })
 
--- ===========================
--- Tabs
--- ===========================
+--========================================================--
+--                 ONLY TWO TABS                          --
+--========================================================--
 
-local LocalPlayerTab = Window:CreateTab("Local Player", nil)
-local ESPTab = Window:CreateTab("ESP", nil)
-local AimbotTab = Window:CreateTab("Aimbot", nil)
+local LocalTab = Window:CreateTab("Local")
+local AimbotTab = Window:CreateTab("Aimbot")
 
--- ===========================
--- Local Player Tab
--- ===========================
+--========================================================--
+--                LOCAL TAB (YOUR ORDER)                  --
+--========================================================--
 
--- Infinite Jump
+-- Infinite Jump Toggle
 local infJumpEnabled = false
-LocalPlayerTab:CreateToggle({
+LocalTab:CreateToggle({
     Name = "Infinite Jump",
     CurrentValue = false,
     Flag = "InfJump",
-    Callback = function(Value)
-        infJumpEnabled = Value
-        print("Infinite Jump is now:", infJumpEnabled)
-    end,
+    Callback = function(value)
+        infJumpEnabled = value
+    end
 })
 
-game:GetService("UserInputService").JumpRequest:Connect(function()
-    if infJumpEnabled then
-        if character and character:FindFirstChild("Humanoid") then
-            character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-        end
+UserInputService.JumpRequest:Connect(function()
+    if infJumpEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        LocalPlayer.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
     end
 end)
 
--- NoClip
+-- NoClip Toggle
 local noclipEnabled = false
-LocalPlayerTab:CreateToggle({
+LocalTab:CreateToggle({
     Name = "NoClip",
     CurrentValue = false,
-    Flag = "NoClipToggle",
-    Callback = function(Value)
-        noclipEnabled = Value
-        print("NoClip is now:", noclipEnabled)
-    end,
+    Flag = "NoClip",
+    Callback = function(value)
+        noclipEnabled = value
+    end
 })
 
 RunService.Stepped:Connect(function()
-    if character then
-        for _, part in pairs(character:GetDescendants()) do
-            if part:IsA("BasePart") then
-                part.CanCollide = not noclipEnabled
+    if LocalPlayer.Character then
+        for _, v in pairs(LocalPlayer.Character:GetDescendants()) do
+            if v:IsA("BasePart") then
+                v.CanCollide = not noclipEnabled
             end
         end
     end
 end)
 
--- Walk Speed Slider
-LocalPlayerTab:CreateSlider({
-    Name = "Walk Speed",
+-- WalkSpeed Slider
+LocalTab:CreateSlider({
+    Name = "WalkSpeed",
     Range = {16, 200},
-    Increment = 5,
-    Suffix = "Walk Speed",
+    Increment = 1,
     CurrentValue = 16,
-    Flag = "WalkSpeedSlider",
-    Callback = function(Value)
-        if humanoid then
-            humanoid.WalkSpeed = Value
+    Flag = "WalkSpeed",
+    Callback = function(value)
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+            LocalPlayer.Character.Humanoid.WalkSpeed = value
         end
-    end,
+    end
 })
 
--- Jump Power Slider
-LocalPlayerTab:CreateSlider({
-    Name = "Jump Power",
-    Range = {50, 500},
-    Increment = 10,
-    Suffix = "Jump Power",
+-- JumpPower Slider
+LocalTab:CreateSlider({
+    Name = "JumpPower",
+    Range = {50, 300},
+    Increment = 1,
     CurrentValue = 50,
-    Flag = "JumpPowerSlider",
-    Callback = function(Value)
-        if humanoid then
-            humanoid.JumpPower = Value
-        end
-    end,
-})
-
--- ===========================
--- ESP Tab
--- ===========================
-
--- ESP Bodies
-local espEnabled = false
-local highlights = {}
-
-local function createESP(character)
-    if character:FindFirstChild("HumanoidRootPart") and not highlights[character] then
-        local highlight = Instance.new("Highlight")
-        highlight.Adornee = character
-        highlight.FillColor = Color3.fromRGB(255, 0, 0)
-        highlight.OutlineColor = Color3.fromRGB(0, 0, 0)
-        highlight.FillTransparency = 0.5
-        highlight.OutlineTransparency = 0
-        highlight.Parent = workspace
-        highlights[character] = highlight
-    end
-end
-
-local function removeESP(character)
-    if highlights[character] then
-        highlights[character]:Destroy()
-        highlights[character] = nil
-    end
-end
-
-ESPTab:CreateToggle({
-    Name = "ESP",
-    CurrentValue = false,
-    Flag = "ESPToggle",
-    Callback = function(Value)
-        espEnabled = Value
-        if not espEnabled then
-            for char, hl in pairs(highlights) do
-                hl:Destroy()
-            end
-            highlights = {}
-        else
-            for _, p in pairs(Players:GetPlayers()) do
-                if p.Character then
-                    createESP(p.Character)
-                end
-            end
-        end
-    end,
-})
-
-Players.PlayerAdded:Connect(function(p)
-    p.CharacterAdded:Connect(function(char)
-        if espEnabled then
-            createESP(char)
-        end
-    end)
-end)
-
-RunService.Stepped:Connect(function()
-    for char, hl in pairs(highlights) do
-        if not char.Parent then
-            removeESP(char)
-        end
-    end
-end)
-
--- Name ESP
-local nameESPEnabled = false
-local nameESPs = {}
-
-local function createNameESP(character, player)
-    if character:FindFirstChild("HumanoidRootPart") and not nameESPs[character] then
-        local billboard = Instance.new("BillboardGui")
-        billboard.Adornee = character.HumanoidRootPart
-        billboard.Size = UDim2.new(0, 100, 0, 50)
-        billboard.StudsOffset = Vector3.new(0, 3, 0)
-        billboard.AlwaysOnTop = true
-
-        local textLabel = Instance.new("TextLabel")
-        textLabel.Size = UDim2.new(1,0,1,0)
-        textLabel.BackgroundTransparency = 1
-        textLabel.TextColor3 = Color3.fromRGB(255,0,0)
-        textLabel.TextStrokeTransparency = 0
-        textLabel.TextScaled = true
-        textLabel.Font = Enum.Font.SourceSansBold
-        textLabel.Text = player.Name
-        textLabel.Parent = billboard
-
-        billboard.Parent = workspace
-        nameESPs[character] = billboard
-    end
-end
-
-local function removeNameESP(character)
-    if nameESPs[character] then
-        nameESPs[character]:Destroy()
-        nameESPs[character] = nil
-    end
-end
-
-ESPTab:CreateToggle({
-    Name = "ESP Usernames",
-    CurrentValue = false,
-    Flag = "NameESPToggle",
-    Callback = function(Value)
-        nameESPEnabled = Value
-        if not Value then
-            for char, gui in pairs(nameESPs) do
-                gui:Destroy()
-            end
-            nameESPs = {}
-        else
-            for _, p in pairs(Players:GetPlayers()) do
-                if p.Character then
-                    createNameESP(p.Character, p)
-                end
-            end
+    Flag = "JumpPower",
+    Callback = function(value)
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+            LocalPlayer.Character.Humanoid.JumpPower = value
         end
     end
 })
 
-Players.PlayerAdded:Connect(function(p)
-    p.CharacterAdded:Connect(function(char)
-        if nameESPEnabled then
-            createNameESP(char, p)
-        end
-    end)
-end)
-
--- Distance ESP
-local distanceESPEnabled = false
-local distanceESPs = {}
-
-local function createDistanceESP(character, player)
-    if character:FindFirstChild("HumanoidRootPart") and not distanceESPs[character] then
-        local billboard = Instance.new("BillboardGui")
-        billboard.Adornee = character.HumanoidRootPart
-        billboard.Size = UDim2.new(0,100,0,50)
-        billboard.StudsOffset = Vector3.new(0,3,0)
-        billboard.AlwaysOnTop = true
-
-        local textLabel = Instance.new("TextLabel")
-        textLabel.Size = UDim2.new(1,0,1,0)
-        textLabel.BackgroundTransparency = 1
-        textLabel.TextColor3 = Color3.fromRGB(0,255,0)
-        textLabel.TextStrokeTransparency = 0
-        textLabel.TextScaled = true
-        textLabel.Font = Enum.Font.SourceSansBold
-        textLabel.Parent = billboard
-
-        billboard.Parent = workspace
-        distanceESPs[character] = textLabel
-
-        RunService.RenderStepped:Connect(function()
-            if character.Parent and distanceESPEnabled then
-                local dist = (player.Character.HumanoidRootPart.Position - character.HumanoidRootPart.Position).Magnitude
-                textLabel.Text = string.format("%s\n%.1f studs", player.Name, dist)
-            end
-        end)
+-- FOV Slider
+LocalTab:CreateSlider({
+    Name = "Camera FOV",
+    Range = {20, 120},
+    Increment = 1,
+    CurrentValue = 70,
+    Suffix = "°",
+    Flag = "LocalFOV",
+    Callback = function(value)
+        Camera.FieldOfView = value
     end
-end
+})
 
-local function removeDistanceESP(character)
-    if distanceESPs[character] then
-        distanceESPs[character].Parent:Destroy()
-        distanceESPs[character] = nil
-    end
-end
-
-ESPTab:CreateToggle({
-    Name = "Distance ESP",
-    CurrentValue = false,
-    Flag = "DistanceESPToggle",
-    Callback = function(Value)
-        distanceESPEnabled = Value
-        if not Value then
-            for char,_ in pairs(distanceESPs) do
-                removeDistanceESP(char)
-            end
-        else
-            for _, p in pairs(Players:GetPlayers()) do
-                if p ~= player and p.Character then
-                    createDistanceESP(p.Character, p)
-                end
-            end
+-- Reset Character Button
+LocalTab:CreateButton({
+    Name = "Reset Character",
+    Callback = function()
+        if LocalPlayer.Character then
+            LocalPlayer.Character:BreakJoints()
         end
     end
 })
 
-Players.PlayerAdded:Connect(function(p)
-    p.CharacterAdded:Connect(function(char)
-        if distanceESPEnabled and p ~= player then
-            createDistanceESP(char, p)
-        end
-    end)
-end)
+-- Rejoin Button
+LocalTab:CreateButton({
+    Name = "Rejoin",
+    Callback = function()
+        game:GetService("TeleportService"):Teleport(game.PlaceId, LocalPlayer)
+    end
+})
 
--- ==========================
--- Red Dot Aimbot Toggle
--- ==========================
+--========================================================--
+--                    AIMBOT SYSTEM                       --
+--========================================================--
 
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
-local LocalPlayer = Players.LocalPlayer
-local Camera = workspace.CurrentCamera
+local aimbotEnabled = false
+local holdingKey = false
+local aimbotFOV = 120  -- uses local FOV slider range
 
-local aimAssistEnabled = false
-local holdingX = false
-
--- Create red dot
-local dot = Instance.new("Frame")
-dot.Size = UDim2.new(0, 8, 0, 8)
-dot.AnchorPoint = Vector2.new(0.5, 0.5)
-dot.Position = UDim2.new(0.5, 0, 0.5, 0)
-dot.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-dot.BorderSizePixel = 0
-dot.Visible = false
-dot.Parent = LocalPlayer:WaitForChild("PlayerGui"):WaitForChild("ScreenGui") or Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
-
--- Function to get nearest visible player
 local function GetNearestPlayer()
     local nearest = nil
     local shortestDist = math.huge
-    local cam = Camera
-    local center = Vector2.new(cam.ViewportSize.X/2, cam.ViewportSize.Y/2)
+    local view = Camera.ViewportSize
+    local center = Vector2.new(view.X/2, view.Y/2)
 
-    for _, player in ipairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
-            local headPos, onScreen = cam:WorldToViewportPoint(player.Character.Head.Position)
-            if onScreen then
-                local screenPos = Vector2.new(headPos.X, headPos.Y)
-                local dist = (screenPos - center).Magnitude
-                if dist < shortestDist then
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("Head") then
+            local head = plr.Character.Head
+            local pos, vis = Camera:WorldToViewportPoint(head.Position)
+
+            if vis then
+                local dist = (Vector2.new(pos.X, pos.Y) - center).Magnitude
+                if dist < shortestDist and dist <= Camera.FieldOfView * 3 then
                     shortestDist = dist
-                    nearest = player.Character.Head
+                    nearest = head
                 end
             end
         end
     end
-
     return nearest
 end
 
--- Toggle in your GUI
-AimbotTab:CreateToggle({
-    Name = "Red Dot Aim Assist",
-    CurrentValue = false,
-    Callback = function(Value)
-        aimAssistEnabled = Value
-        dot.Visible = Value
-        if not Value then
-            dot.Position = UDim2.new(0.5, 0, 0.5, 0) -- reset to center
-        end
-    end
-})
-
--- Detect hold X
-UserInputService.InputBegan:Connect(function(input, gpe)
-    if gpe then return end
-    if input.KeyCode == Enum.KeyCode.X and aimAssistEnabled then
-        holdingX = true
+UserInputService.InputBegan:Connect(function(input)
+    if aimbotEnabled and input.KeyCode == Enum.KeyCode.X then
+        holdingKey = true
     end
 end)
 
 UserInputService.InputEnded:Connect(function(input)
     if input.KeyCode == Enum.KeyCode.X then
-        holdingX = false
-        if aimAssistEnabled then
-            dot.Position = UDim2.new(0.5, 0, 0.5, 0) -- back to center
-        end
+        holdingKey = false
     end
 end)
 
--- Update dot every frame
 RunService.RenderStepped:Connect(function()
-    if aimAssistEnabled then
-        if holdingX then
-            local target = GetNearestPlayer()
-            if target then
-                local screenPos = Camera:WorldToViewportPoint(target.Position)
-                dot.Position = UDim2.new(0, screenPos.X, 0, screenPos.Y)
-            else
-                dot.Position = UDim2.new(0.5, 0, 0.5, 0)
-            end
-        else
-            dot.Position = UDim2.new(0.5, 0, 0.5, 0)
+    if aimbotEnabled and holdingKey then
+        local target = GetNearestPlayer()
+        if target then
+            Camera.CFrame = CFrame.new(Camera.CFrame.Position, target.Position)
         end
     end
 end)
 
-
+AimbotTab:CreateToggle({
+    Name = "Aimbot (Hold X)",
+    CurrentValue = false,
+    Flag = "AimbotToggle",
+    Callback = function(state)
+        aimbotEnabled = state
+        holdingKey = false
+    end
+})
