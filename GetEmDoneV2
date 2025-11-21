@@ -314,7 +314,7 @@ Players.PlayerAdded:Connect(function(p)
 end)
 
 -- ===========================
--- Aimbot Tab
+-- Aimbot Tab (First + Third Person)
 -- ===========================
 
 local aimbotEnabled = false
@@ -344,6 +344,8 @@ AimbotTab:CreateToggle({
     Flag = "AimbotToggle",
     Callback = function(Value)
         aimbotEnabled = Value
+
+        -- Turned off → disconnect camera loop
         if not aimbotEnabled then
             holdingX = false
             if followConnection then
@@ -352,18 +354,32 @@ AimbotTab:CreateToggle({
             end
             return
         end
+
+        -- Turned on → connect camera loop
         followConnection = RunService.RenderStepped:Connect(function()
             if aimbotEnabled and holdingX then
                 local target = GetNearestPlayer()
                 if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
                     local targetPos = target.Character.HumanoidRootPart.Position
-                    Camera.CFrame = Camera.CFrame:Lerp(CFrame.new(Camera.CFrame.Position, targetPos), 0.25)
+                    local rootPart = character:FindFirstChild("HumanoidRootPart")
+                    if rootPart then
+                        local lookVector = (targetPos - rootPart.Position).Unit
+
+                        -- First-person: rotate player
+                        if Camera.CameraSubject == humanoid then
+                            rootPart.CFrame = CFrame.new(rootPart.Position, rootPart.Position + lookVector)
+                        else
+                            -- Third-person: smooth camera Lerp
+                            Camera.CFrame = Camera.CFrame:Lerp(CFrame.new(Camera.CFrame.Position, targetPos), 0.25)
+                        end
+                    end
                 end
             end
         end)
     end
 })
 
+-- Hold X to enable aimbot
 UserInputService.InputBegan:Connect(function(input, gpe)
     if gpe then return end
     if input.KeyCode == Enum.KeyCode.X and aimbotEnabled then
