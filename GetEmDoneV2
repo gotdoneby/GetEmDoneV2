@@ -1,56 +1,57 @@
+-- Services
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local Camera = workspace.CurrentCamera
+
+-- Load Rayfield
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-
 local Window = Rayfield:CreateWindow({
-   Name = "GetEmDone V2",
-   Icon = 0, -- Icon in Topbar. Can use Lucide Icons (string) or Roblox Image (number). 0 to use no icon (default).
-   LoadingTitle = "GetEmDone V2",
-   LoadingSubtitle = "by GotDoneBy",
-   ShowText = "GetEmDone V2", -- for mobile users to unhide rayfield, change if you'd like
-   Theme = "Default", -- Check https://docs.sirius.menu/rayfield/configuration/themes
-
-   ToggleUIKeybind = "K", -- The keybind to toggle the UI visibility (string like "K" or Enum.KeyCode)
-
-   DisableRayfieldPrompts = false,
-   DisableBuildWarnings = false, -- Prevents Rayfield from warning when the script has a version mismatch with the interface
-
-   ConfigurationSaving = {
-      Enabled = false,
-      FolderName = nil, -- Create a custom folder for your hub/game
-      FileName = "Big Hub"
-   },
-
-   Discord = {
-      Enabled = false, -- Prompt the user to join your Discord server if their executor supports it
-      Invite = "noinvitelink", -- The Discord invite code, do not include discord.gg/. E.g. discord.gg/ ABCD would be ABCD
-      RememberJoins = true -- Set this to false to make them join the discord every time they load it up
-   },
-
-   KeySystem = true, -- Set this to true to use our key system
-   KeySettings = {
-      Title = "GetEmDone V2",
-      Subtitle = "GotDoneBy",
-      Note = "Get a key from GotDoneBy", -- Use this to tell the user how to get a key
-      FileName = "Key", -- It is recommended to use something unique as other scripts using Rayfield may overwrite your key file
-      SaveKey = true, -- The user's key will be saved, but if you change the key, they will be unable to use your script
-      GrabKeyFromSite = false, -- If this is true, set Key below to the RAW site you would like Rayfield to get the key from
-      Key = {"viktorwala"} -- List of keys that will be accepted by the system, can be RAW file links (pastebin, github etc) or simple strings ("hello","key22")
-   }
+    Name = "GetEmDone V2",
+    Icon = 0,
+    LoadingTitle = "GetEmDone V2",
+    LoadingSubtitle = "by GotDoneBy",
+    ShowText = "GetEmDone V2",
+    Theme = "Default",
+    ToggleUIKeybind = "K",
+    DisableRayfieldPrompts = false,
+    DisableBuildWarnings = false,
+    ConfigurationSaving = {Enabled = false, FolderName = nil, FileName = "Big Hub"},
+    Discord = {Enabled = false, Invite = "noinvitelink", RememberJoins = true},
+    KeySystem = true,
+    KeySettings = {
+        Title = "GetEmDone V2",
+        Subtitle = "GotDoneBy",
+        Note = "Get a key from GotDoneBy",
+        FileName = "Key",
+        SaveKey = true,
+        GrabKeyFromSite = false,
+        Key = {"viktorwala"}
+    }
 })
 
--- Local Player Tab --
+-- ===========================
+-- Tabs
+-- ===========================
 
-local Tab = Window:CreateTab("Local Player", nil) -- Title, Image
+local LocalPlayerTab = Window:CreateTab("Local Player", nil)
+local ESPTab = Window:CreateTab("ESP", nil)
+local AimbotTab = Window:CreateTab("Aimbot", nil)
 
--- Infinite Jump Toggle
+-- ===========================
+-- Local Player Tab
+-- ===========================
 
+-- Infinite Jump
 local infJumpEnabled = false
-
-local Toggle = Tab:CreateToggle({
+LocalPlayerTab:CreateToggle({
     Name = "Infinite Jump",
     CurrentValue = false,
-    Flag = "InfJump", -- Unique flag for config
+    Flag = "InfJump",
     Callback = function(Value)
-        -- This code runs whenever the toggle is changed
         infJumpEnabled = Value
         print("Infinite Jump is now:", infJumpEnabled)
     end,
@@ -58,24 +59,15 @@ local Toggle = Tab:CreateToggle({
 
 game:GetService("UserInputService").JumpRequest:Connect(function()
     if infJumpEnabled then
-        local player = game.Players.LocalPlayer
-        local character = player.Character
         if character and character:FindFirstChild("Humanoid") then
             character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
         end
     end
 end)
 
--- Noclip Toggle
-
-
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local player = Players.LocalPlayer
+-- NoClip
 local noclipEnabled = false
-
--- Toggle in your GUI
-local NoClipToggle = Tab:CreateToggle({
+LocalPlayerTab:CreateToggle({
     Name = "NoClip",
     CurrentValue = false,
     Flag = "NoClipToggle",
@@ -85,45 +77,25 @@ local NoClipToggle = Tab:CreateToggle({
     end,
 })
 
--- Run a loop every frame to handle NoClip
 RunService.Stepped:Connect(function()
-    if noclipEnabled then
-        local character = player.Character
-        if character then
-            for _, part in pairs(character:GetDescendants()) do
-                if part:IsA("BasePart") then
-                    part.CanCollide = false
-                end
-            end
-        end
-    else
-        local character = player.Character
-        if character then
-            for _, part in pairs(character:GetDescendants()) do
-                if part:IsA("BasePart") then
-                    part.CanCollide = true
-                end
+    if character then
+        for _, part in pairs(character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = not noclipEnabled
             end
         end
     end
 end)
 
-
 -- Walk Speed Slider
-
-local player = game.Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local humanoid = character:WaitForChild("Humanoid")
-
-local SpeedSlider = Tab:CreateSlider({
+LocalPlayerTab:CreateSlider({
     Name = "Walk Speed",
-    Range = {16, 200}, -- Default Roblox walk speed is 16
+    Range = {16, 200},
     Increment = 5,
     Suffix = "Walk Speed",
     CurrentValue = 16,
-    Flag = "WalkSpeedSlider", -- Unique flag
+    Flag = "WalkSpeedSlider",
     Callback = function(Value)
-        -- Set the humanoid's WalkSpeed to the slider value
         if humanoid then
             humanoid.WalkSpeed = Value
         end
@@ -131,39 +103,27 @@ local SpeedSlider = Tab:CreateSlider({
 })
 
 -- Jump Power Slider
-
-local player = game.Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local humanoid = character:WaitForChild("Humanoid")
-
-local JumpSlider = Tab:CreateSlider({
+LocalPlayerTab:CreateSlider({
     Name = "Jump Power",
-    Range = {50, 500}, -- Default Roblox jump power is 50
+    Range = {50, 500},
     Increment = 10,
     Suffix = "Jump Power",
     CurrentValue = 50,
-    Flag = "JumpPowerSlider", -- Unique flag
+    Flag = "JumpPowerSlider",
     Callback = function(Value)
-        -- Set the humanoid's JumpPower to the slider value
         if humanoid then
             humanoid.JumpPower = Value
         end
     end,
 })
 
--- ESP Options
-
-local Tab = Window:CreateTab("ESP", nil) -- Title, Image
+-- ===========================
+-- ESP Tab
+-- ===========================
 
 -- ESP Bodies
-
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
 local espEnabled = false
-
-
 local highlights = {}
-
 
 local function createESP(character)
     if character:FindFirstChild("HumanoidRootPart") and not highlights[character] then
@@ -178,7 +138,6 @@ local function createESP(character)
     end
 end
 
-
 local function removeESP(character)
     if highlights[character] then
         highlights[character]:Destroy()
@@ -186,92 +145,69 @@ local function removeESP(character)
     end
 end
 
-
-local ESPToggle = Tab:CreateToggle({
+ESPTab:CreateToggle({
     Name = "ESP",
     CurrentValue = false,
     Flag = "ESPToggle",
     Callback = function(Value)
         espEnabled = Value
         if not espEnabled then
-            -- Remove all highlights when turning off
-            for char, highlight in pairs(highlights) do
-                highlight:Destroy()
+            for char, hl in pairs(highlights) do
+                hl:Destroy()
             end
             highlights = {}
         else
-            -- Add ESP for all current players
-            for _, player in pairs(Players:GetPlayers()) do
-                if player.Character then
-                    createESP(player.Character)
+            for _, p in pairs(Players:GetPlayers()) do
+                if p.Character then
+                    createESP(p.Character)
                 end
             end
         end
-        print("ESP is now:", espEnabled)
     end,
 })
 
-
-Players.PlayerAdded:Connect(function(player)
-    player.CharacterAdded:Connect(function(character)
+Players.PlayerAdded:Connect(function(p)
+    p.CharacterAdded:Connect(function(char)
         if espEnabled then
-            createESP(character)
+            createESP(char)
         end
     end)
 end)
 
-
-for _, player in pairs(Players:GetPlayers()) do
-    player.CharacterAdded:Connect(function(character)
-        if espEnabled then
-            createESP(character)
-        end
-    end)
-end
-
-
 RunService.Stepped:Connect(function()
-    for char, highlight in pairs(highlights) do
+    for char, hl in pairs(highlights) do
         if not char.Parent then
             removeESP(char)
         end
     end
 end)
 
--- ESP Usernames
-
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
+-- Name ESP
 local nameESPEnabled = false
-
-
 local nameESPs = {}
-
 
 local function createNameESP(character, player)
     if character:FindFirstChild("HumanoidRootPart") and not nameESPs[character] then
         local billboard = Instance.new("BillboardGui")
-        billboard.Adornee = character:WaitForChild("HumanoidRootPart")
+        billboard.Adornee = character.HumanoidRootPart
         billboard.Size = UDim2.new(0, 100, 0, 50)
         billboard.StudsOffset = Vector3.new(0, 3, 0)
         billboard.AlwaysOnTop = true
-        billboard.Name = "NameESP"
 
         local textLabel = Instance.new("TextLabel")
-        textLabel.Size = UDim2.new(1, 0, 1, 0)
+        textLabel.Size = UDim2.new(1,0,1,0)
         textLabel.BackgroundTransparency = 1
-        textLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+        textLabel.TextColor3 = Color3.fromRGB(255,0,0)
         textLabel.TextStrokeTransparency = 0
-        textLabel.Text = player.Name
         textLabel.TextScaled = true
         textLabel.Font = Enum.Font.SourceSansBold
+        textLabel.Text = player.Name
         textLabel.Parent = billboard
 
         billboard.Parent = workspace
         nameESPs[character] = billboard
     end
 end
-
 
 local function removeNameESP(character)
     if nameESPs[character] then
@@ -280,82 +216,51 @@ local function removeNameESP(character)
     end
 end
 
--- GUI toggle
-local NameESPToggle = Tab:CreateToggle({
+ESPTab:CreateToggle({
     Name = "ESP Usernames",
     CurrentValue = false,
     Flag = "NameESPToggle",
     Callback = function(Value)
         nameESPEnabled = Value
-        if not nameESPEnabled then
-            -- Remove all name ESPs when turning off
+        if not Value then
             for char, gui in pairs(nameESPs) do
                 gui:Destroy()
             end
             nameESPs = {}
         else
-            -- Add ESP for all current players
-            for _, player in pairs(Players:GetPlayers()) do
-                if player.Character then
-                    createNameESP(player.Character, player)
+            for _, p in pairs(Players:GetPlayers()) do
+                if p.Character then
+                    createNameESP(p.Character, p)
                 end
             end
         end
-        print("Name ESP is now:", nameESPEnabled)
-    end,
+    end
 })
 
-
-Players.PlayerAdded:Connect(function(player)
-    player.CharacterAdded:Connect(function(character)
+Players.PlayerAdded:Connect(function(p)
+    p.CharacterAdded:Connect(function(char)
         if nameESPEnabled then
-            createNameESP(character, player)
+            createNameESP(char, p)
         end
     end)
 end)
 
-
-for _, player in pairs(Players:GetPlayers()) do
-    player.CharacterAdded:Connect(function(character)
-        if nameESPEnabled then
-            createNameESP(character, player)
-        end
-    end)
-end
-
-
-RunService.Stepped:Connect(function()
-    for char, gui in pairs(nameESPs) do
-        if not char.Parent then
-            removeNameESP(char)
-        end
-    end
-end)
-
--- Player Distance ESP
-
-
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local localPlayer = Players.LocalPlayer
-
+-- Distance ESP
 local distanceESPEnabled = false
 local distanceESPs = {}
 
--- Function to create distance ESP
 local function createDistanceESP(character, player)
     if character:FindFirstChild("HumanoidRootPart") and not distanceESPs[character] then
         local billboard = Instance.new("BillboardGui")
-        billboard.Adornee = character:WaitForChild("HumanoidRootPart")
-        billboard.Size = UDim2.new(0, 100, 0, 50)
-        billboard.StudsOffset = Vector3.new(0, 3, 0)
+        billboard.Adornee = character.HumanoidRootPart
+        billboard.Size = UDim2.new(0,100,0,50)
+        billboard.StudsOffset = Vector3.new(0,3,0)
         billboard.AlwaysOnTop = true
-        billboard.Name = "DistanceESP"
 
         local textLabel = Instance.new("TextLabel")
-        textLabel.Size = UDim2.new(1, 0, 1, 0)
+        textLabel.Size = UDim2.new(1,0,1,0)
         textLabel.BackgroundTransparency = 1
-        textLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+        textLabel.TextColor3 = Color3.fromRGB(0,255,0)
         textLabel.TextStrokeTransparency = 0
         textLabel.TextScaled = true
         textLabel.Font = Enum.Font.SourceSansBold
@@ -364,17 +269,15 @@ local function createDistanceESP(character, player)
         billboard.Parent = workspace
         distanceESPs[character] = textLabel
 
-        -- Update distance every frame
         RunService.RenderStepped:Connect(function()
             if character.Parent and distanceESPEnabled then
-                local dist = (localPlayer.Character.HumanoidRootPart.Position - character.HumanoidRootPart.Position).Magnitude
+                local dist = (player.Character.HumanoidRootPart.Position - character.HumanoidRootPart.Position).Magnitude
                 textLabel.Text = string.format("%s\n%.1f studs", player.Name, dist)
             end
         end)
     end
 end
 
--- Function to remove distance ESP
 local function removeDistanceESP(character)
     if distanceESPs[character] then
         distanceESPs[character].Parent:Destroy()
@@ -382,77 +285,49 @@ local function removeDistanceESP(character)
     end
 end
 
--- GUI toggle
-local DistanceESPToggle = Tab:CreateToggle({
+ESPTab:CreateToggle({
     Name = "Distance ESP",
     CurrentValue = false,
     Flag = "DistanceESPToggle",
     Callback = function(Value)
         distanceESPEnabled = Value
-        if not distanceESPEnabled then
-            -- Remove all ESPs
-            for char, _ in pairs(distanceESPs) do
+        if not Value then
+            for char,_ in pairs(distanceESPs) do
                 removeDistanceESP(char)
             end
         else
-            -- Add ESP for all current players
-            for _, player in pairs(Players:GetPlayers()) do
-                if player ~= localPlayer and player.Character then
-                    createDistanceESP(player.Character, player)
+            for _, p in pairs(Players:GetPlayers()) do
+                if p ~= player and p.Character then
+                    createDistanceESP(p.Character, p)
                 end
             end
         end
-        print("Distance ESP is now:", distanceESPEnabled)
-    end,
+    end
 })
 
--- Handle new players joining
-Players.PlayerAdded:Connect(function(player)
-    player.CharacterAdded:Connect(function(character)
-        if distanceESPEnabled and player ~= localPlayer then
-            createDistanceESP(character, player)
+Players.PlayerAdded:Connect(function(p)
+    p.CharacterAdded:Connect(function(char)
+        if distanceESPEnabled and p ~= player then
+            createDistanceESP(char, p)
         end
     end)
 end)
 
--- Handle existing players respawning
-for _, player in pairs(Players:GetPlayers()) do
-    if player ~= localPlayer then
-        player.CharacterAdded:Connect(function(character)
-            if distanceESPEnabled then
-                createDistanceESP(character, player)
-            end
-        end)
-    end
-end
-
+-- ===========================
 -- Aimbot Tab
+-- ===========================
 
-local Tab = Window:CreateTab("Aimbot", nil) -- Title, Image
-
--- Aimbot
-
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
-
-local LocalPlayer = Players.LocalPlayer
-local Camera = workspace.CurrentCamera
-
--- Variables
-local enabled = false
+local aimbotEnabled = false
 local holdingX = false
 local followConnection = nil
 
--- Finds nearest player
 local function GetNearestPlayer()
     local nearest = nil
     local shortest = math.huge
-
-    for _, p in ipairs(Players:GetPlayers()) do
-        if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                local dist = (p.Character.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+    for _, p in pairs(Players:GetPlayers()) do
+        if p ~= player and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+            if character and character:FindFirstChild("HumanoidRootPart") then
+                local dist = (p.Character.HumanoidRootPart.Position - character.HumanoidRootPart.Position).Magnitude
                 if dist < shortest then
                     shortest = dist
                     nearest = p
@@ -460,22 +335,16 @@ local function GetNearestPlayer()
             end
         end
     end
-
     return nearest
 end
 
-
--- === TOGGLE ===
-local Toggle = Tab:CreateToggle({
+AimbotTab:CreateToggle({
     Name = "Aimbot (Hold X)",
     CurrentValue = false,
     Flag = "AimbotToggle",
     Callback = function(Value)
-        
-        enabled = Value
-
-        -- TURNED OFF → disconnect camera loop
-        if not enabled then
+        aimbotEnabled = Value
+        if not aimbotEnabled then
             holdingX = false
             if followConnection then
                 followConnection:Disconnect()
@@ -483,30 +352,21 @@ local Toggle = Tab:CreateToggle({
             end
             return
         end
-
-        -- TURNED ON → connect camera loop
         followConnection = RunService.RenderStepped:Connect(function()
-            if enabled and holdingX then
+            if aimbotEnabled and holdingX then
                 local target = GetNearestPlayer()
                 if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
                     local targetPos = target.Character.HumanoidRootPart.Position
-
-                    -- SMOOTH AIM (LERP)
-                    local newCF = CFrame.new(Camera.CFrame.Position, targetPos)
-                    Camera.CFrame = Camera.CFrame:Lerp(newCF, 0.25) -- smoothness
+                    Camera.CFrame = Camera.CFrame:Lerp(CFrame.new(Camera.CFrame.Position, targetPos), 0.25)
                 end
             end
         end)
-
     end
 })
 
-
-
--- HOLD X TO AIMBOT
 UserInputService.InputBegan:Connect(function(input, gpe)
     if gpe then return end
-    if input.KeyCode == Enum.KeyCode.X and enabled then
+    if input.KeyCode == Enum.KeyCode.X and aimbotEnabled then
         holdingX = true
     end
 end)
