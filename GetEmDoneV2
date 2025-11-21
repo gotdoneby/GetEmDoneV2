@@ -425,3 +425,94 @@ for _, player in pairs(Players:GetPlayers()) do
         end)
     end
 end
+
+-- Aimbot Tab
+
+local Tab = Window:CreateTab("Aimbot", nil) -- Title, Image
+
+-- Aimbot
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+
+-- Variables
+local enabled = false
+local holdingX = false
+local followConnection = nil
+
+-- Finds nearest player
+local function GetNearestPlayer()
+    local nearest = nil
+    local shortest = math.huge
+
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                local dist = (p.Character.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+                if dist < shortest then
+                    shortest = dist
+                    nearest = p
+                end
+            end
+        end
+    end
+
+    return nearest
+end
+
+
+-- === TOGGLE ===
+local Toggle = Tab:CreateToggle({
+    Name = "Aimbot (Hold X)",
+    CurrentValue = false,
+    Flag = "AimbotToggle",
+    Callback = function(Value)
+        
+        enabled = Value
+
+        -- TURNED OFF → disconnect camera loop
+        if not enabled then
+            holdingX = false
+            if followConnection then
+                followConnection:Disconnect()
+                followConnection = nil
+            end
+            return
+        end
+
+        -- TURNED ON → connect camera loop
+        followConnection = RunService.RenderStepped:Connect(function()
+            if enabled and holdingX then
+                local target = GetNearestPlayer()
+                if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+                    local targetPos = target.Character.HumanoidRootPart.Position
+
+                    -- SMOOTH AIM (LERP)
+                    local newCF = CFrame.new(Camera.CFrame.Position, targetPos)
+                    Camera.CFrame = Camera.CFrame:Lerp(newCF, 0.25) -- smoothness
+                end
+            end
+        end)
+
+    end
+})
+
+
+
+-- HOLD X TO AIMBOT
+UserInputService.InputBegan:Connect(function(input, gpe)
+    if gpe then return end
+    if input.KeyCode == Enum.KeyCode.X and enabled then
+        holdingX = true
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.X then
+        holdingX = false
+    end
+end)
