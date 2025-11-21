@@ -1,5 +1,5 @@
 --========================================================--
---                  GETEMDONE V2 - CLEAN GUI              --
+--                  GetEmDone V2                          --
 --========================================================--
 
 local Players = game:GetService("Players")
@@ -7,11 +7,9 @@ local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
+local TeleportService = game:GetService("TeleportService")
 
---========================================================--
---                  LOAD RAYFIELD UI                      --
---========================================================--
-
+-- UI Library
 local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
 
 local Window = Rayfield:CreateWindow({
@@ -22,41 +20,41 @@ local Window = Rayfield:CreateWindow({
 })
 
 --========================================================--
---                 ONLY TWO TABS                          --
+--                       TABS                              --
 --========================================================--
 
 local LocalTab = Window:CreateTab("Local")
 local AimbotTab = Window:CreateTab("Aimbot")
 
 --========================================================--
---                LOCAL TAB (YOUR ORDER)                  --
+--                 LOCAL TAB FEATURES                     --
 --========================================================--
 
--- Infinite Jump Toggle
-local infJumpEnabled = false
+-- Infinite Jump
+local infJump = false
+
 LocalTab:CreateToggle({
     Name = "Infinite Jump",
     CurrentValue = false,
-    Flag = "InfJump",
-    Callback = function(value)
-        infJumpEnabled = value
+    Callback = function(state)
+        infJump = state
     end
 })
 
 UserInputService.JumpRequest:Connect(function()
-    if infJumpEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+    if infJump and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
         LocalPlayer.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
     end
 end)
 
--- NoClip Toggle
-local noclipEnabled = false
+-- NoClip
+local noclip = false
+
 LocalTab:CreateToggle({
     Name = "NoClip",
     CurrentValue = false,
-    Flag = "NoClip",
-    Callback = function(value)
-        noclipEnabled = value
+    Callback = function(state)
+        noclip = state
     end
 })
 
@@ -64,19 +62,18 @@ RunService.Stepped:Connect(function()
     if LocalPlayer.Character then
         for _, v in pairs(LocalPlayer.Character:GetDescendants()) do
             if v:IsA("BasePart") then
-                v.CanCollide = not noclipEnabled
+                v.CanCollide = not noclip
             end
         end
     end
 end)
 
--- WalkSpeed Slider
+-- WalkSpeed
 LocalTab:CreateSlider({
     Name = "WalkSpeed",
     Range = {16, 200},
     Increment = 1,
     CurrentValue = 16,
-    Flag = "WalkSpeed",
     Callback = function(value)
         if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
             LocalPlayer.Character.Humanoid.WalkSpeed = value
@@ -84,13 +81,12 @@ LocalTab:CreateSlider({
     end
 })
 
--- JumpPower Slider
+-- JumpPower
 LocalTab:CreateSlider({
     Name = "JumpPower",
     Range = {50, 300},
     Increment = 1,
     CurrentValue = 50,
-    Flag = "JumpPower",
     Callback = function(value)
         if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
             LocalPlayer.Character.Humanoid.JumpPower = value
@@ -98,20 +94,18 @@ LocalTab:CreateSlider({
     end
 })
 
--- FOV Slider
+-- Camera FOV
 LocalTab:CreateSlider({
     Name = "Camera FOV",
     Range = {20, 120},
     Increment = 1,
     CurrentValue = 70,
-    Suffix = "°",
-    Flag = "LocalFOV",
     Callback = function(value)
         Camera.FieldOfView = value
     end
 })
 
--- Reset Character Button
+-- Reset Character
 LocalTab:CreateButton({
     Name = "Reset Character",
     Callback = function()
@@ -121,72 +115,42 @@ LocalTab:CreateButton({
     end
 })
 
--- Rejoin Button
+-- Rejoin
 LocalTab:CreateButton({
     Name = "Rejoin",
     Callback = function()
-        game:GetService("TeleportService"):Teleport(game.PlaceId, LocalPlayer)
+        TeleportService:Teleport(game.PlaceId, LocalPlayer)
     end
 })
 
 --========================================================--
---                    AIMBOT SYSTEM                       --
+--                    AIMBOT TAB (SAFE)                   --
 --========================================================--
 
 local aimbotEnabled = false
-local holdingKey = false
-local aimbotFOV = 120  -- uses local FOV slider range
 
-local function GetNearestPlayer()
-    local nearest = nil
-    local shortestDist = math.huge
-    local view = Camera.ViewportSize
-    local center = Vector2.new(view.X/2, view.Y/2)
+AimbotTab:CreateToggle({
+    Name = "Aimbot (Hold X)",
+    CurrentValue = false,
+    Callback = function(state)
+        aimbotEnabled = state
+        print("Aimbot toggled:", state)
 
-    for _, plr in ipairs(Players:GetPlayers()) do
-        if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("Head") then
-            local head = plr.Character.Head
-            local pos, vis = Camera:WorldToViewportPoint(head.Position)
+        
 
-            if vis then
-                local dist = (Vector2.new(pos.X, pos.Y) - center).Magnitude
-                if dist < shortestDist and dist <= Camera.FieldOfView * 3 then
-                    shortestDist = dist
-                    nearest = head
-                end
-            end
-        end
     end
-    return nearest
-end
+})
 
+-- Hook for your hold-to-aim logic
 UserInputService.InputBegan:Connect(function(input)
-    if aimbotEnabled and input.KeyCode == Enum.KeyCode.X then
-        holdingKey = true
+    if input.KeyCode == Enum.KeyCode.X and aimbotEnabled then
+        
     end
 end)
 
 UserInputService.InputEnded:Connect(function(input)
     if input.KeyCode == Enum.KeyCode.X then
-        holdingKey = false
+        
     end
 end)
 
-RunService.RenderStepped:Connect(function()
-    if aimbotEnabled and holdingKey then
-        local target = GetNearestPlayer()
-        if target then
-            Camera.CFrame = CFrame.new(Camera.CFrame.Position, target.Position)
-        end
-    end
-end)
-
-AimbotTab:CreateToggle({
-    Name = "Aimbot (Hold X)",
-    CurrentValue = false,
-    Flag = "AimbotToggle",
-    Callback = function(state)
-        aimbotEnabled = state
-        holdingKey = false
-    end
-})
