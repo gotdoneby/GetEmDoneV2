@@ -403,4 +403,39 @@ TeleportTab:CreateButton({
     end
 })
 
+-- ALien Chest
+
+TeleportTab:CreateButton({
+    Name = "Teleport to Alien Chest",
+    Callback = function()
+        local Workspace = game:GetService("Workspace")
+        local Players = game:GetService("Players")
+        local LocalPlayer = Players.LocalPlayer
+        local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+        local hrp = character:WaitForChild("HumanoidRootPart")
+
+        -- Find Alien Chest
+        local targetChest = nil
+        for _, obj in ipairs(Workspace:GetDescendants()) do
+            if obj:IsA("Model") and obj.Name == "Alien Chest" then
+                targetChest = obj
+                break
+            end
+        end
+
+        if not targetChest then
+            warn("Alien Chest not found!")
+            return
+        end
+
+        local part = targetChest.PrimaryPart or targetChest:FindFirstChildWhichIsA("BasePart")
+        if not part then
+            warn("Alien Chest has no valid teleport part!")
+            return
+        end
+
+        hrp.CFrame = part.CFrame + Vector3.new(0, 5, 0)
+    end
+})
+
 
