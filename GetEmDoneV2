@@ -171,8 +171,8 @@ BringStuffTab:CreateButton({
             ["Rifle"] = true,
             ["Revolver"] = true,
             ["Laser Sword"] = true,
-            ["LaserCannon"] = true,
-            ["RayGun"] = true,
+            ["Laser Cannon"] = true,
+            ["Ray Gun"] = true,
         }
 
         for _, obj in ipairs(workspace:GetDescendants()) do
@@ -325,6 +325,31 @@ BringStuffTab:CreateButton({
         local targetNames = {
             ["Rifle Ammo"] = true,
             ["Revolver Ammo"] = true,
+        }
+
+        for _, obj in ipairs(workspace:GetDescendants()) do
+            if obj:IsA("Model") and targetNames[obj.Name] then
+                local primary = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
+                if primary then
+                    obj:SetPrimaryPartCFrame(root.CFrame + Vector3.new(0, 4, 0))
+                end
+            end
+        end
+    end,
+})
+
+-- Bring Healing
+
+BringStuffTab:CreateButton({
+    Name = "Bring Healing",
+    Callback = function()
+        local lp = game.Players.LocalPlayer
+        local char = lp.Character or lp.CharacterAdded:Wait()
+        local root = char:WaitForChild("HumanoidRootPart")
+
+        local targetNames = {
+            ["MedKit"] = true,
+            ["Bandage"] = true,
         }
 
         for _, obj in ipairs(workspace:GetDescendants()) do
