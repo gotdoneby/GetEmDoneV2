@@ -25,6 +25,7 @@ local Window = Rayfield:CreateWindow({
 
 local LocalTab = Window:CreateTab("Local")
 local BringStuffTab = Window:CreateTab("Bring Stuff")
+local TeleportTab = Window:CreateTab("Teleport")
 
 --========================================================--
 --                 LOCAL TAB FEATURES                     --
@@ -362,3 +363,6 @@ BringStuffTab:CreateButton({
         end
     end,
 })
+
+-- Teleport Tab
+
