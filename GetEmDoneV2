@@ -24,7 +24,7 @@ local Window = Rayfield:CreateWindow({
 --========================================================--
 
 local LocalTab = Window:CreateTab("Local")
-local AimbotTab = Window:CreateTab("Aimbot")
+local BringStuffTab = Window:CreateTab("Bring Stuff")
 
 --========================================================--
 --                 LOCAL TAB FEATURES                     --
@@ -124,33 +124,191 @@ LocalTab:CreateButton({
 })
 
 --========================================================--
---                    AIMBOT TAB (SAFE)                   --
+--                    Bring Stuff                         --
 --========================================================--
 
-local aimbotEnabled = false
+-- Bring Scrap
 
-AimbotTab:CreateToggle({
-    Name = "Aimbot (Hold X)",
-    CurrentValue = false,
-    Callback = function(state)
-        aimbotEnabled = state
-        print("Aimbot toggled:", state)
+BringStuffTab:CreateButton({
+    Name = "Bring Scrap",
+    Callback = function()
+        local lp = game.Players.LocalPlayer
+        local char = lp.Character or lp.CharacterAdded:Wait()
+        local root = char:WaitForChild("HumanoidRootPart")
 
-        
+        local targetNames = {
+            ["UFO Scrap"] = true,
+            ["Sheet Metal"] = true,
+            ["UFO Junk"] = true,
+            ["Old Radio"] = true,
+            ["Metal Chair"] = true,
+            ["Broken Fan"] = true,
+            ["Broken Microwave"] = true,
+            ["Bolt"] = true, 
+            ["Tyre"] = true, 
+        }
 
-    end
+        for _, obj in ipairs(workspace:GetDescendants()) do
+            if obj:IsA("Model") and targetNames[obj.Name] then
+                local primary = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
+                if primary then
+                    obj:SetPrimaryPartCFrame(root.CFrame + Vector3.new(0, 4, 0))
+                end
+            end
+        end
+    end,
 })
 
--- Hook for your hold-to-aim logic
-UserInputService.InputBegan:Connect(function(input)
-    if input.KeyCode == Enum.KeyCode.X and aimbotEnabled then
-        
-    end
-end)
+-- Bring 
+BringStuffTab:CreateButton({
+    Name = "Bring Weapons",
+    Callback = function()
+        local lp = game.Players.LocalPlayer
+        local char = lp.Character or lp.CharacterAdded:Wait()
+        local root = char:WaitForChild("HumanoidRootPart")
 
-UserInputService.InputEnded:Connect(function(input)
-    if input.KeyCode == Enum.KeyCode.X then
-        
-    end
-end)
+        local targetNames = {
+            ["Rifle"] = true,
+            ["Revolver"] = true,
+            ["Laser Sword"] = true,
+            ["LaserCannon"] = true,
+            ["RayGun"] = true,
+        }
 
+        for _, obj in ipairs(workspace:GetDescendants()) do
+            if obj:IsA("Model") and targetNames[obj.Name] then
+                local primary = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
+                if primary then
+                    obj:SetPrimaryPartCFrame(root.CFrame + Vector3.new(0, 4, 0))
+                end
+            end
+        end
+    end,
+})
+
+
+-- Bring All
+
+BringStuffTab:CreateButton({
+    Name = "Bring Animals",
+    Callback = function()
+        local lp = game.Players.LocalPlayer
+        local char = lp.Character or lp.CharacterAdded:Wait()
+        local root = char:WaitForChild("HumanoidRootPart")
+
+        for _, obj in ipairs(workspace:GetDescendants()) do
+            -- If it's a single part and unanchored
+            if obj:IsA("BasePart") and obj.Anchored == false then
+                obj.CFrame = root.CFrame + Vector3.new(0, 4, 0)
+            
+            -- If it's a model with an unanchored primary part
+            elseif obj:IsA("Model") then
+                local primary = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
+                if primary and primary.Anchored == false then
+                    obj:SetPrimaryPartCFrame(root.CFrame + Vector3.new(0, 4, 0))
+                end
+            end
+        end
+    end,
+})
+
+-- Bring Wood
+
+BringStuffTab:CreateButton({
+    Name = "Bring Wood",
+    Callback = function()
+        local lp = game.Players.LocalPlayer
+        local char = lp.Character or lp.CharacterAdded:Wait()
+        local root = char:WaitForChild("HumanoidRootPart")
+
+        local targetNames = {
+            ["Log"] = true,
+            ["WoodenChair"] = true,
+        }
+
+        for _, obj in ipairs(workspace:GetDescendants()) do
+            if obj:IsA("Model") and targetNames[obj.Name] then
+                local primary = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
+                if primary then
+                    obj:SetPrimaryPartCFrame(root.CFrame + Vector3.new(0, 4, 0))
+                end
+            end
+        end
+    end,
+})
+
+-- Bring Fuel
+
+BringStuffTab:CreateButton({
+    Name = "Bring Fuel",
+    Callback = function()
+        local lp = game.Players.LocalPlayer
+        local char = lp.Character or lp.CharacterAdded:Wait()
+        local root = char:WaitForChild("HumanoidRootPart")
+
+        local targetNames = {
+            ["Coal"] = true,
+            ["Fuel Canister"] = true,
+            ["Log"] = true,
+            ["Wooden Chair"] = true,
+            ["Oil Barrel"] = true,
+        }
+
+        for _, obj in ipairs(workspace:GetDescendants()) do
+            if obj:IsA("Model") and targetNames[obj.Name] then
+                local primary = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
+                if primary then
+                    obj:SetPrimaryPartCFrame(root.CFrame + Vector3.new(0, 4, 0))
+                end
+            end
+        end
+    end,
+})
+
+-- Bring Food
+
+BringStuffTab:CreateButton({
+    Name = "Bring Food",
+    Callback = function()
+        local lp = game.Players.LocalPlayer
+        local char = lp.Character or lp.CharacterAdded:Wait()
+        local root = char:WaitForChild("HumanoidRootPart")
+
+        local targetNames = {
+            ["Berry"] = true,
+            ["Morsel"] = true,
+            ["Steak"] = true,
+            ["Carrot"] = true,
+            ["Cake"] = true,
+        }
+
+        for _, obj in ipairs(workspace:GetDescendants()) do
+            if obj:IsA("Model") and targetNames[obj.Name] then
+                local primary = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
+                if primary then
+                    obj:SetPrimaryPartCFrame(root.CFrame + Vector3.new(0, 4, 0))
+                end
+            end
+        end
+    end,
+})
+
+-- Bring Coin Stacks
+
+BringStuffTab:CreateButton({
+    Name = "Bring All Coin Stacks",
+    Callback = function()
+        local lp = game.Players.LocalPlayer
+        local char = lp.Character or lp.CharacterAdded:Wait()
+        local root = char:WaitForChild("HumanoidRootPart")
+
+        for _, obj in ipairs(workspace:GetDescendants()) do
+            if obj:IsA("Model") and obj.Name == "Coin Stack" then
+                local primary = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
+                if primary then
+                    obj:SetPrimaryPartCFrame(root.CFrame + Vector3.new(0, 4, 0))
+                end
+            end
+        end
+    end,
+})
