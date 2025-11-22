@@ -10,7 +10,7 @@ local UserInputService = game:GetService("UserInputService")
 local TeleportService = game:GetService("TeleportService")
 
 -- UI Library
-local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+local Rayfield = loadstring(game:HttpGet("https://[Log in to view URL]"))()
 
 local Window = Rayfield:CreateWindow({
     Name = "GetEmDone V2",
@@ -365,4 +365,43 @@ BringStuffTab:CreateButton({
 })
 
 -- Teleport Tab
+
+-- Teleport To Random Chest
+
+TeleportTab:CreateButton({
+    Name = "Teleport to Random Chest",
+    Callback = function()
+        local Workspace = game:GetService("Workspace")
+        local Players = game:GetService("Players")
+        local LocalPlayer = Players.LocalPlayer
+        local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+        local hrp = character:WaitForChild("HumanoidRootPart")
+
+        -- Collect all models containing "Chest" in the name
+        local chests = {}
+        for _, obj in ipairs(Workspace:GetDescendants()) do
+            if obj:IsA("Model") and string.find(obj.Name, "Chest") then
+                table.insert(chests, obj)
+            end
+        end
+
+        if #chests == 0 then
+            warn("No chest models found!")
+            return
+        end
+
+        -- Pick a random chest
+        local randomChest = chests[math.random(1, #chests)]
+        -- Find a primary part or fallback to HumanoidRootPart of chest if it exists
+        local targetPart = randomChest.PrimaryPart or randomChest:FindFirstChildWhichIsA("BasePart")
+
+        if targetPart then
+            hrp.CFrame = targetPart.CFrame + Vector3.new(0, 5, 0) -- teleport above it
+        else
+            warn("No valid part found in chest model: "..randomChest.Name)
+        end
+    end
+})
+
+-- Teleport 
 
